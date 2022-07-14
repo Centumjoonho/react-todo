@@ -1,25 +1,124 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { Component } from 'react';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+//property = > props
+// this.props -> 이건 jax 파일의 필수 !!! 
+
+//react ->subject라는 이름의 태그 생성 (하나의 클래스)
+class Subject extends Component {
+
+  render() {
+    return (
+
+      <header>
+        <h1>{this.props.title}</h1>
+
+        {this.props.sub}
+
       </header>
-    </div>
-  );
+    );
+  }
+
+
 }
+//이 태그의 내용은 아래 
+
+class TOC extends Component {
+
+  render() {
+    //담을 그릇
+    var list = [];
+    //loop문 data = state.contents
+    var i = 0;
+    while (i < this.props.data.length) {
+      var data = this.props.data[i];
+      //list에 목록 집어 넣기  
+      //data.id = 유일무이 식별자
+      list.push(
+        <li key={data.id}>
+          <a href={data.id + ".html"} onClick={function (id, ev) {
+            ev.preventDefault();
+            this.props.onSelect(id);
+          }.bind(this, data.id)}>
+            {data.title}
+          </a>
+        </li>)
+
+      i = i + 1;
+
+    }
+    //map 함수 확인해 보기 
+
+    return (
+
+      <nav>
+        <ol>
+          {list}
+        </ol>
+      </nav>
+
+    );
+  }
+}
+
+class Content extends Component {
+  render() {
+    return (
+
+      <article>
+        <h2>{this.props.data.title}</h2>
+        {this.props.data.desc}
+      </article>
+
+
+    );
+  }
+}
+
+
+
+
+class App extends Component {
+
+  state = {
+    selected_content_id: 1,
+    contents: [
+      { id: 1, title: 'HTML', desc: 'HTML is for information' },
+      { id: 2, title: 'CSS', desc: 'CSS is for Design' },
+      { id: 3, title: 'JavaScript', desc: 'JavaScript is for interaction' }
+    ]
+  }
+  getSelectedContent() {
+    var i = 0;
+    while (i < this.state.contents.length) {
+      var data = this.state.contents[i];
+      if (this.state.selected_content_id === data.id) {
+        return data;
+      }
+      i = i + 1;
+    }
+  }
+  render() {
+
+    return (
+      <div className="App">
+
+        <Subject title="WEB" sub="World Wide Web"></Subject>
+
+        <TOC onSelect={function (id) {
+          console.log('APP', id);
+          // this.state.selected_content_id 값을 id으로 바꿔라
+          //읽기가 아닌 쓰기 
+          this.setState({ selected_content_id: id })
+          //-> 이 문법 매우 중요 
+        }.bind(this)} data={this.state.contents}></TOC>
+
+        <Content data={this.getSelectedContent()}></Content>
+
+      </div>
+    );
+  }
+}
+
+//Subject -> tag
 
 export default App;
