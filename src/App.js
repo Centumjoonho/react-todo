@@ -10,7 +10,11 @@ class Subject extends Component {
     return (
 
       <header>
-        <h1>{this.props.title}</h1>
+        <h1><a href="/" onClick={function (ev) {
+          ev.preventDefault();
+          this.props.onClick();
+
+        }.bind(this)}>{this.props.title}</a></h1>
 
         {this.props.sub}
 
@@ -80,6 +84,7 @@ class Content extends Component {
 class App extends Component {
 
   state = {
+    mode: 'read',
     selected_content_id: 1,
     contents: [
       { id: 1, title: 'HTML', desc: 'HTML is for information' },
@@ -97,22 +102,34 @@ class App extends Component {
       i = i + 1;
     }
   }
+  getContentComponent() {
+    if (this.state.mode === 'read') {
+      return <Content data={this.getSelectedContent()}></Content>
+
+    } else if (this.state.mode === 'welcome') {
+      return <Content data={{ title: 'Welcome', desc: 'Hello React !!!' }}></Content>
+    }
+
+  }
   render() {
 
     return (
       <div className="App">
 
-        <Subject title="WEB" sub="World Wide Web"></Subject>
+        <Subject onClick={function () {
+          this.setState({ mode: 'welcome' })
+
+        }.bind(this)} title="WEB" sub="World Wide Web"></Subject>
 
         <TOC onSelect={function (id) {
-          console.log('APP', id);
           // this.state.selected_content_id 값을 id으로 바꿔라
           //읽기가 아닌 쓰기 
-          this.setState({ selected_content_id: id })
+          this.setState({ selected_content_id: id, mode: 'read' });
           //-> 이 문법 매우 중요 
         }.bind(this)} data={this.state.contents}></TOC>
+        {this.getContentComponent()}
 
-        <Content data={this.getSelectedContent()}></Content>
+
 
       </div>
     );
