@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, version } from 'react';
 
 //property = > props
 // this.props -> 이건 jax 파일의 필수 !!! 
@@ -77,15 +77,46 @@ class Content extends Component {
     );
   }
 }
+class ContentCreate extends Component {
+  // 약속 -> 전송을 위한 
 
+  state = {
+    title: '',
+    desc: ''
+  }
+  changeFormHandler(ev) {
+    //setState -> name의 값에 따라서 변경
+
+    this.setState({ [ev.target.name]: ev.target.value });
+    console.log(ev.target.value);
+
+  }
+  render() {
+    return (
+      <article>
+        {/* form을 쓰는 이유 -> 전송 */}
+        <form onSubmit={function (ev) {
+          ev.preventDefault();
+          this.props.onSubmit(this.state);
+
+        }.bind(this)}>
+          <p><input type="text" placeholder='title' name='title' value={this.state.title} onChange={this.changeFormHandler.bind(this)}></input></p>
+          <p><textarea placeholder='description' name='desc' value={this.state.desc} onChange={this.changeFormHandler.bind(this)}></textarea></p>
+          <p><input type="submit"></input></p>
+        </form>
+      </article>
+    );
+
+  }
+}
 
 
 
 class App extends Component {
-
+  last_content_id = 3
   state = {
     mode: 'read',
-    selected_content_id: 1,
+    selected_content_id: 3,
     contents: [
       { id: 1, title: 'HTML', desc: 'HTML is for information' },
       { id: 2, title: 'CSS', desc: 'CSS is for Design' },
@@ -108,8 +139,55 @@ class App extends Component {
 
     } else if (this.state.mode === 'welcome') {
       return <Content data={{ title: 'Welcome', desc: 'Hello React !!!' }}></Content>
+
+    } else if (this.state.mode === "create") {
+      return <ContentCreate onSubmit={function (formdata) {
+        console.log(formdata);
+        this.last_content_id = this.last_content_id + 1;
+        formdata.id = this.last_content_id;
+
+        //Object.assign -> 변수 값을 복제해 새로운 변수에 넣어준다. 
+        var newContents = Object.assign([], this.state.contents)
+        newContents.push(formdata);
+        //화면 세팅! 
+        this.setState({
+          contents: newContents,
+
+          selected_content_id: this.last_content_id,
+
+          mode: 'read'
+        });
+
+      }.bind(this)}></ContentCreate>
     }
 
+  }
+  //버트구형
+  getControlComponent() {
+    return [
+      <a key="1" href='/crate' onClick={function (ev) {
+        ev.preventDefault();
+        this.setState({ mode: "create" })
+      }.bind(this)}>create</a>,
+
+      <a key="2" href='/update' onClick={function (ev) {
+        ev.preventDefault();
+      }.bind(this)}>update</a>,
+
+      <input key="3" type='button' href='/delete' onClick={function () {
+
+        var newContents = this.state.contents.filter(function (el) {
+          // 선택한 컨텐츠를 제외한 나머지를 다시 띄워 올린다 .
+          if (el.id !== this.state.selected_content_id) {
+            return el;
+          }
+        }.bind(this));
+        this.setState({
+          contents: newContents,
+          mode: 'welcome'
+        });
+      }.bind(this)} value='delete'></input>,
+    ];
   }
   render() {
 
@@ -117,16 +195,22 @@ class App extends Component {
       <div className="App">
 
         <Subject onClick={function () {
-          this.setState({ mode: 'welcome' })
+          this.setState({ mode: 'welcome' });
 
         }.bind(this)} title="WEB" sub="World Wide Web"></Subject>
 
         <TOC onSelect={function (id) {
           // this.state.selected_content_id 값을 id으로 바꿔라
           //읽기가 아닌 쓰기 
-          this.setState({ selected_content_id: id, mode: 'read' });
+          this.setState({
+            selected_content_id: id,
+            mode: 'read'
+          });
           //-> 이 문법 매우 중요 
         }.bind(this)} data={this.state.contents}></TOC>
+
+        {/* 여기 부터는 아예 함수에 태그를 집어 넣었다. */}
+        {this.getControlComponent()}
         {this.getContentComponent()}
 
 
